@@ -13,6 +13,9 @@
 				<Option compiler="gcc" />
 				<Compiler>
 					<Add option="-g" />
+					<Add directory="converter" />
+					<Add directory="core" />
+					<Add directory="identifier" />
 				</Compiler>
 			</Target>
 			<Target title="Release">
@@ -31,16 +34,16 @@
 		<Compiler>
 			<Add option="-Wall" />
 		</Compiler>
-		<Unit filename="characterIdentifier.h" />
-		<Unit filename="codeConverter.cpp" />
-		<Unit filename="codeConverter.h" />
-		<Unit filename="fsm.cpp" />
-		<Unit filename="htmlConverter.cpp" />
-		<Unit filename="htmlConverter.h" />
-		<Unit filename="include/fsm.h" />
-		<Unit filename="include/lexer.h" />
-		<Unit filename="include/token.h" />
-		<Unit filename="lexer.cpp" />
+		<Unit filename="converter/codeConverter.cpp" />
+		<Unit filename="converter/codeConverter.h" />
+		<Unit filename="converter/htmlConverter.cpp" />
+		<Unit filename="converter/htmlConverter.h" />
+		<Unit filename="core/fsm.cpp" />
+		<Unit filename="core/fsm.h" />
+		<Unit filename="core/lexer.cpp" />
+		<Unit filename="core/lexer.h" />
+		<Unit filename="core/token.h" />
+		<Unit filename="identifier/characterIdentifier.h" />
 		<Unit filename="main.cpp" />
 		<Extensions />
 	</Project>
