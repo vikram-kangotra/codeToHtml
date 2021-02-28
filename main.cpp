@@ -42,10 +42,10 @@ void writeAll(const std::string& fileName, const std::string& data) {
 int main(int argc, char* argv[])
 {
     try {
-        if(argc != 1)
+        if(argc != 2)
             throw ArgumentError();
 
-        std::string program = readAll("temp.cpp");
+        std::string program = readAll(argv[1]);
 
         Lexer lexer(program);
 
