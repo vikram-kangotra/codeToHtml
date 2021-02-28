@@ -1,0 +1,76 @@
+<!DOCTPYE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <title>Code</title>
+        <link rel="stylesheet" href="style.css">
+    </head>
+    <body>
+        <pre style="max-height: 600px;"><code><span class="code-meta">#include &lt;iostream&gt;</span>
+<span class="code-meta">#include &lt;fstream&gt;</span>
+<span class="code-meta">#include &lt;sstream&gt;</span>
+<span class="code-meta">#include &lt;memory&gt;</span>
+<span class="code-meta">#include "htmlConverter.h"</span>
+
+class ArgumentError : public std::exception {};
+
+class FileDoesNotExit : public std::exception {
+public:
+    FileDoesNotExit(<span class="code-keyword">const</span> std::string& fileName)
+        :   mFileName(fileName) {}
+
+    <span class="code-keyword">const</span> <span class="code-keyword">char</span>* what() <span class="code-keyword">const</span> noexcept {
+        <span class="code-keyword">return</span> mFileName.c_str();
+    }
+private:
+    std::string mFileName;
+};
+
+std::string readAll(<span class="code-keyword">const</span> std::string& fileName) {
+    std::ifstream file(fileName, std::ios::ate);
+
+    <span class="code-keyword">if</span>(!file.is_open()) {
+        throw FileDoesNotExit(fileName);
+    }
+
+    <span class="code-keyword">const</span> <span class="code-keyword">int</span> length = file.tellg();
+    file.seekg(0, std::ifstream::beg);
+
+    std::unique_ptr&lt;<span class="code-keyword">char</span>&gt; str(new <span class="code-keyword">char</span>[length]);
+    file.read(str.get(), length);
+
+    <span class="code-keyword">return</span> std::string(str.get());
+}
+
+<span class="code-keyword">void</span> writeAll(<span class="code-keyword">const</span> std::string& fileName, <span class="code-keyword">const</span> std::string& data) {
+    std::ofstream file(fileName);
+    file.write(data.c_str(), data.length());
+}
+
+<span class="code-keyword">int</span> main(<span class="code-keyword">int</span> argc, <span class="code-keyword">char</span>* argv[])
+{
+    try {
+        <span class="code-keyword">if</span>(argc != 2)
+            throw ArgumentError();
+
+        std::string program = readAll(argv[1]);
+
+        Lexer lexer(program);
+
+        HtmlConverter htmlConverter(lexer);
+        std::string html = htmlConverter.convert();
+
+        writeAll(<span class="code-string">"output.html"</span>, html);
+
+    } catch(<span class="code-keyword">const</span> std::runtime_error& err) {
+        std::cout &lt;&lt; err.what();
+        <span class="code-keyword">return</span> -1;
+    } catch(<span class="code-keyword">const</span> ArgumentError& err) {
+        std::cerr &lt;&lt; <span class="code-string">"Usage: "</span> &lt;&lt; argv[0] &lt;&lt; <span class="code-string">" file"</span>;
+    }
+
+    <span class="code-keyword">return</span> 0;
+}
+</code></pre>
+    </body>
+</html>
