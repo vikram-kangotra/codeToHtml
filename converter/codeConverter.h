@@ -4,10 +4,12 @@
 #include "lexer.h"
 #include <vector>
 
-class CodeConverter {
+class CodeConverter
+{
 public:
     CodeConverter(const Lexer& lexer)
-        :   mLexer(lexer) {
+        :   mLexer(lexer)
+    {
         mLexer.process();
     }
 

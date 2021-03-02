@@ -36,10 +36,10 @@ enum class TokenType
 
     LEFT_PARENTHESIS,
     RIGHT_PARENTHESIS,
-    LEFT_CURLY_PARENTHESIS,
-    RIGHT_CURLY_PARENTHESIS,
-    LEFT_BOX_PARENTHESIS,
-    RIGHT_BOX_PARENTHESIS,
+    LEFT_BRACES,
+    RIGHT_BRACES,
+    LEFT_BRACKET,
+    RIGHT_BRACKET,
 
     END_OF_INPUT,
 
@@ -153,17 +153,17 @@ public:
         case TokenType::NOT:
             return "Not";
             break;
-        case TokenType::LEFT_CURLY_PARENTHESIS:
-            return "Left Curly Parentthesis";
+        case TokenType::LEFT_BRACES:
+            return "Left Braces";
             break;
-        case TokenType::RIGHT_CURLY_PARENTHESIS:
-            return "Right Curly Parentthesis";
+        case TokenType::RIGHT_BRACES:
+            return "Right Braces";
             break;
-        case TokenType::LEFT_BOX_PARENTHESIS:
-            return "Left Box Parentthesis";
+        case TokenType::LEFT_BRACKET:
+            return "Left Bracket";
             break;
-        case TokenType::RIGHT_BOX_PARENTHESIS:
-            return "Right Box Parentthesis";
+        case TokenType::RIGHT_BRACKET:
+            return "Right Bracket";
             break;
         case TokenType::UNKNOWN:
             return "Unkown";

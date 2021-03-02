@@ -1,16 +1,5 @@
 #include "htmlConverter.h"
-
-std::set<std::string> HtmlConverter::mKeywords = {
-    "auto",   "break",   "case", "char",   "const",   "continue",   "default",   "do",
-    "double",   "else",   "enum", "extern",   "float",   "for",   "goto",   "if",
-    "int",   "long" 	,   "register", "return",   "short",   "signed", 	"sizeof",   "static",
-    "struct",  	"switch", 	"typedef", "union",   "unsigned",   "void",   "volatile",    "while",
-    "using",    "namespace"
-};
-
-std::set<std::string> HtmlConverter::mBuiltins =  {
-    "std",  "cout", "cin", "cerr", "string", "vector", "list", "map"
-};
+#include "cppTokens.h"
 
 HtmlConverter::HtmlConverter(Lexer lexer)
     :   CodeConverter(lexer)
@@ -35,8 +24,12 @@ void HtmlConverter::handleHtmlPrintables(Token& token)
 {
     char character = token.getValue()[0];
     switch(character) {
-        case '<': token = Token(token.getType(), "&lt;", token.getLine(), token.getColumn()); break;
-        case '>': token = Token(token.getType(), "&gt;", token.getLine(), token.getColumn()); break;
+    case '<':
+        token = Token(token.getType(), "&lt;", token.getLine(), token.getColumn());
+        break;
+    case '>':
+        token = Token(token.getType(), "&gt;", token.getLine(), token.getColumn());
+        break;
     }
 }
 
@@ -50,7 +43,7 @@ void HtmlConverter::handle()
     handle();
 }
 
-CodeFormat HtmlConverter::identifyCodeFormat()
+HtmlConverter::CodeFormat HtmlConverter::identifyCodeFormat()
 {
     CodeFormat codeFormat;
 
@@ -73,22 +66,23 @@ CodeFormat HtmlConverter::identifyCodeFormat()
     } else {
 
         switch(token.getType()) {
-            case TokenType::STRING: {
-                                        codeFormat.styleClass = "code-string";
-                                        codeFormat.value = token.getValue();
-                                        break;
-                                    }
-            case TokenType::CHARACTER:  {
-                                            codeFormat.styleClass = "code-charater";
-                                            codeFormat.value = token.getValue();
-                                            break;
-                                        }
-            case TokenType::NUMBER: {
-                                        codeFormat.styleClass = "code-number";
-                                        codeFormat.value = token.getValue();
-                                        break;
-                                    }
-            default: break;
+        case TokenType::STRING: {
+            codeFormat.styleClass = "code-string";
+            codeFormat.value = token.getValue();
+            break;
+        }
+        case TokenType::CHARACTER:  {
+            codeFormat.styleClass = "code-charater";
+            codeFormat.value = token.getValue();
+            break;
+        }
+        case TokenType::NUMBER: {
+            codeFormat.styleClass = "code-number";
+            codeFormat.value = token.getValue();
+            break;
+        }
+        default:
+            break;
         }
     }
 
@@ -100,10 +94,10 @@ bool HtmlConverter::isCommentStart(const Token& token)
 {
     const TokenType nextTokenType = mLexer[mTokenIndex+1].getType();
     return (token.getType() == TokenType::DIV) &&
-            ((nextTokenType == TokenType::DIV) || (nextTokenType == TokenType::MULT));
+           ((nextTokenType == TokenType::DIV) || (nextTokenType == TokenType::MULT));
 }
 
-CodeFormat HtmlConverter::handleComment()
+HtmlConverter::CodeFormat HtmlConverter::handleComment()
 {
     CodeFormat codeFormat;
     codeFormat.styleClass = "code-comment";
@@ -125,7 +119,7 @@ bool HtmlConverter::isCommentEnd(const Token& token)
 {
     const TokenType nextTokenType = mLexer[mTokenIndex+1].getType();
     return (token.getType() == TokenType::NEWLINE) ||
-        ((token.getType() == TokenType::MULT) && (nextTokenType == TokenType::DIV));
+           ((token.getType() == TokenType::MULT) && (nextTokenType == TokenType::DIV));
 }
 
 bool HtmlConverter::isFunction(const Token& token)
@@ -138,7 +132,7 @@ bool HtmlConverter::isMeta(const Token& token)
     return token.getType() == TokenType::HASH;
 }
 
-CodeFormat HtmlConverter::handleMeta()
+HtmlConverter::CodeFormat HtmlConverter::handleMeta()
 {
     CodeFormat codeFormat;
     codeFormat.styleClass = "code-meta";
@@ -146,9 +140,9 @@ CodeFormat HtmlConverter::handleMeta()
     while(true) {
         const Token& token = mLexer[mTokenIndex];
         codeFormat.value += token.getValue();
-        ++mTokenIndex;
         if(token.getType() == TokenType::NEWLINE)
             break;
+        ++mTokenIndex;
     }
 
     return codeFormat;

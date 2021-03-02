@@ -5,12 +5,6 @@
 #include "codeConverter.h"
 #include <set>
 
-struct CodeFormat
-{
-    std::string styleClass;
-    std::string value;
-};
-
 class HtmlConverter : public CodeConverter
 {
 public:
@@ -31,6 +25,11 @@ private:
     static std::set<std::string> mBuiltins;
 
     int mTokenIndex = 0;
+
+    struct CodeFormat {
+        std::string styleClass;
+        std::string value;
+    };
 
 private:
     bool isKeyword(const Token& keyword) { return mKeywords.find(keyword.getValue()) != mKeywords.end();}

@@ -20,16 +20,37 @@ public:
 
     Token getNextToken();
 
-    bool eof() const { return mEndOfFile;}
+    bool eof() const
+    {
+        return mEndOfFile;
+    }
 
-    Token& operator[](const int& i) {return mTokens[i];}
+    Token& operator[](const int& i)
+    {
+        return mTokens[i];
+    }
 
-    int size() const {return mTokens.size();}
+    int size() const
+    {
+        return mTokens.size();
+    }
 
-    Token* begin() {return &mTokens[0];}
-    Token* end() {return &mTokens[size()];}
-    const Token* begin() const {return &mTokens[0];}
-    const Token* end() const {return &mTokens[size()];}
+    Token* begin()
+    {
+        return &mTokens[0];
+    }
+    Token* end()
+    {
+        return &mTokens[size()];
+    }
+    const Token* begin() const
+    {
+        return &mTokens[0];
+    }
+    const Token* end() const
+    {
+        return &mTokens[size()];
+    }
 
 private:
 

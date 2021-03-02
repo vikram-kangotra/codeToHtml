@@ -3,7 +3,8 @@
 #include <string>
 #include "characterIdentifier.h"
 
-void Lexer::process() {
+void Lexer::process()
+{
     Token token;
     while(!eof()) {
         token = getNextToken();
@@ -11,7 +12,8 @@ void Lexer::process() {
     }
 }
 
-Token Lexer::getNextToken() {
+Token Lexer::getNextToken()
+{
 
     if(mPosition >= mProgram.length()) {
         mEndOfFile = true;
@@ -44,18 +46,19 @@ Token Lexer::getNextToken() {
         return recogniseSymbol();
     }
 
-    if(CharacterIdentifier::isDoubleInvertedComma(character)) {
+    if(CharacterIdentifier::isQuotation(character)) {
         return recogniseString();
     }
 
-    if(CharacterIdentifier::isInvertedComma(character)) {
+    if(CharacterIdentifier::isApostrophe(character)) {
         return recogniseCharacter();
     }
 
     throw std::runtime_error("Unrecognized character " + std::string() + character + " at line " + std::to_string(mLine) + " and column " + std::to_string(mColumn));
 }
 
-void Lexer::skipWhiteSpacesAndNewLines() {
+void Lexer::skipWhiteSpacesAndNewLines()
+{
     while(mPosition < mProgram.length() && CharacterIdentifier::isWhiteSpaceOrNewLine(mProgram[mPosition])) {
         ++mPosition;
 
@@ -68,23 +71,27 @@ void Lexer::skipWhiteSpacesAndNewLines() {
     }
 }
 
-Token Lexer::recogniseBlank() {
+Token Lexer::recogniseBlank()
+{
     char character = mProgram[mPosition];
     ++mPosition;
 
     switch(character) {
-        case ' ':   ++mColumn;
-                    return Token(TokenType::SPACE, " ", mLine, mColumn-1);
-                    break;
+    case ' ':
+        ++mColumn;
+        return Token(TokenType::SPACE, " ", mLine, mColumn-1);
+        break;
 
-        case '\n': ++mLine;
-                    mColumn = 0;
-                    return Token(TokenType::NEWLINE, "\n", mLine, mColumn);
-                    break;
+    case '\n':
+        ++mLine;
+        mColumn = 0;
+        return Token(TokenType::NEWLINE, "\n", mLine, mColumn);
+        break;
     }
 }
 
-Token Lexer::recogniseString() {
+Token Lexer::recogniseString()
+{
     std::string str = "\"";
     int column = mColumn;
     int position = mPosition + 1;
@@ -108,7 +115,8 @@ Token Lexer::recogniseString() {
     return Token(TokenType::STRING, str, mLine, column);
 }
 
-Token Lexer::recogniseCharacter() {
+Token Lexer::recogniseCharacter()
+{
     std::string str = "\'";
     int column = mColumn;
     int position = mPosition + 1;
@@ -129,23 +137,42 @@ Token Lexer::recogniseCharacter() {
     return Token(TokenType::CHARACTER, str, mLine, column);
 }
 
-Token Lexer::recogniseSymbol() {
+Token Lexer::recogniseSymbol()
+{
     char character = mProgram[mPosition];
     ++mPosition;
     ++mColumn;
 
     switch(character) {
-        case '#':   return Token(TokenType::HASH        , "#", mLine, mColumn); break;
-        case ':':   return Token(TokenType::COLON       , ":", mLine, mColumn); break;
-        case ';':   return Token(TokenType::SEMICOLON   , ";", mLine, mColumn); break;
-        case '&':   return Token(TokenType::AMPERSAND   , "&", mLine, mColumn); break;
-        case '.':   return Token(TokenType::DOT         , ".", mLine, mColumn); break;
-        case ',':   return Token(TokenType::COMMA       , ",", mLine, mColumn); break;
-        case '!':   return Token(TokenType::NOT         , "!", mLine, mColumn); break;
+    case '#':
+        return Token(TokenType::HASH, "#", mLine, mColumn);
+        break;
+    case ':':
+        return Token(TokenType::COLON, ":", mLine, mColumn);
+        break;
+    case ';':
+        return Token(TokenType::SEMICOLON, ";", mLine, mColumn);
+        break;
+    case '&':
+        return Token(TokenType::AMPERSAND, "&", mLine, mColumn);
+        break;
+    case '|':
+        return Token(TokenType::AMPERSAND, "|", mLine, mColumn);
+        break;
+    case '.':
+        return Token(TokenType::DOT, ".", mLine, mColumn);
+        break;
+    case ',':
+        return Token(TokenType::COMMA, ",", mLine, mColumn);
+        break;
+    case '!':
+        return Token(TokenType::NOT, "!", mLine, mColumn);
+        break;
     }
 }
 
-Token Lexer::recogniseIdentifier() {
+Token Lexer::recogniseIdentifier()
+{
     std::string identifier;
     int column = mColumn;
     int position = mPosition;
@@ -167,7 +194,8 @@ Token Lexer::recogniseIdentifier() {
     return Token(TokenType::IDENTIFIER, identifier, mLine, column);
 }
 
-Token Lexer::recogniseNumber() {
+Token Lexer::recogniseNumber()
+{
     int column = mColumn;
 
     FSM fsm = buildNumberRecogniser();
@@ -186,8 +214,10 @@ Token Lexer::recogniseNumber() {
     return Token(TokenType::UNKNOWN);
 }
 
-FSM Lexer::buildNumberRecogniser() {
-    enum {
+FSM Lexer::buildNumberRecogniser()
+{
+    enum
+    {
         NoNextState,
 
         Initial,
@@ -206,65 +236,67 @@ FSM Lexer::buildNumberRecogniser() {
     std::vector<int> acceptingStates{Integer, NumberWithFractionPart, NumberWithExponent};
 
     FSM fsm(states, initialState, acceptingStates,
-        [](const int& currentState, const char& character)->int{
+    [](const int& currentState, const char& character)->int{
 
-            switch(currentState) {
-                case Initial:
-                    if(isdigit(character)) {
-                        return Integer;
-                    }
-                    break;
-                case Integer:
-                    if(isdigit(character)) {
-                        return Integer;
-                    }
-
-                    if(character == '.') {
-                        return BeginNumberWithFractionPart;
-                    }
-
-                    if(tolower(character) == 'e') {
-                        return BeginNumberWithExponent;
-                    }
-                    break;
-                case BeginNumberWithFractionPart:
-                    if(isdigit(character)) {
-                        return NumberWithFractionPart;
-                    }
-                    break;
-                case NumberWithFractionPart:
-                    if(isdigit(character)) {
-                        return NumberWithFractionPart;
-                    }
-
-                    if(tolower(character) == 'e') {
-                        return BeginNumberWithExponent;
-                    }
-                    break;
-                case BeginNumberWithExponent:
-                    if(character == '+' || character =='-') {
-                        return BeginNumberWithSignedExponent;
-                    }
-
-                    if(isdigit(character)) {
-                        return NumberWithExponent;
-                    }
-                    break;
-                case BeginNumberWithSignedExponent:
-                    if(isdigit(character)) {
-                        return NumberWithExponent;
-                    }
-                    break;
-                default:
-                    break;
+        switch(currentState)
+        {
+        case Initial:
+            if(isdigit(character)) {
+                return Integer;
             }
-            return NoNextState;
-        } );
+            break;
+        case Integer:
+            if(isdigit(character)) {
+                return Integer;
+            }
+
+            if(character == '.') {
+                return BeginNumberWithFractionPart;
+            }
+
+            if(tolower(character) == 'e') {
+                return BeginNumberWithExponent;
+            }
+            break;
+        case BeginNumberWithFractionPart:
+            if(isdigit(character)) {
+                return NumberWithFractionPart;
+            }
+            break;
+        case NumberWithFractionPart:
+            if(isdigit(character)) {
+                return NumberWithFractionPart;
+            }
+
+            if(tolower(character) == 'e') {
+                return BeginNumberWithExponent;
+            }
+            break;
+        case BeginNumberWithExponent:
+            if(character == '+' || character =='-') {
+                return BeginNumberWithSignedExponent;
+            }
+
+            if(isdigit(character)) {
+                return NumberWithExponent;
+            }
+            break;
+        case BeginNumberWithSignedExponent:
+            if(isdigit(character)) {
+                return NumberWithExponent;
+            }
+            break;
+        default:
+            break;
+        }
+        return NoNextState;
+    } );
 
     return fsm;
 }
 
-Token Lexer::recogniseParenthesis() {
+Token Lexer::recogniseParenthesis()
+{
     int column = mColumn;
     const char& Character = mProgram[mPosition];
 
@@ -272,16 +304,29 @@ Token Lexer::recogniseParenthesis() {
     ++mColumn;
 
     switch(Character) {
-        case '(':   return Token(TokenType::LEFT_PARENTHESIS        , "(", mLine, column);   break;
-        case ')':   return Token(TokenType::RIGHT_PARENTHESIS       , ")", mLine, column);   break;
-        case '{':   return Token(TokenType::LEFT_CURLY_PARENTHESIS  , "{", mLine, column);   break;
-        case '}':   return Token(TokenType::RIGHT_CURLY_PARENTHESIS , "}", mLine, column);   break;
-        case '[':   return Token(TokenType::LEFT_BOX_PARENTHESIS    , "[", mLine, column);   break;
-        case ']':   return Token(TokenType::RIGHT_BOX_PARENTHESIS   , "]", mLine, column);   break;
+    case '(':
+        return Token(TokenType::LEFT_PARENTHESIS, "(", mLine, column);
+        break;
+    case ')':
+        return Token(TokenType::RIGHT_PARENTHESIS, ")", mLine, column);
+        break;
+    case '{':
+        return Token(TokenType::LEFT_BRACES, "{", mLine, column);
+        break;
+    case '}':
+        return Token(TokenType::RIGHT_BRACES, "}", mLine, column);
+        break;
+    case '[':
+        return Token(TokenType::LEFT_BRACKET, "[", mLine, column);
+        break;
+    case ']':
+        return Token(TokenType::RIGHT_BRACKET, "]", mLine, column);
+        break;
     }
 }
 
-Token Lexer::recogniseOperator() {
+Token Lexer::recogniseOperator()
+{
     const char& character = mProgram[mPosition];
 
     if(CharacterIdentifier::isComparisonOperator(character)) {
@@ -295,7 +340,8 @@ Token Lexer::recogniseOperator() {
     return Token(TokenType::UNKNOWN);
 }
 
-Token Lexer::recogniseComparisonOperator() {
+Token Lexer::recogniseComparisonOperator()
+{
     int position = mPosition;
     int column = mColumn;
     const char& character = mProgram[mPosition];
@@ -313,26 +359,27 @@ Token Lexer::recogniseComparisonOperator() {
     }
 
     switch(character) {
-        case '>':
-                return isLookaheadEqualSymbol
-                    ? Token(TokenType::GREATER_THAN_OR_EQUAL, ">=", mLine, column)
-                    : Token(TokenType::GREATER_THAN, ">", mLine, column);
-        case '<':
-                return isLookaheadEqualSymbol
-                    ? Token(TokenType::LESS_THAN_OR_EQUAL, "<=", mLine, column)
-                    : Token(TokenType::LESS_THAN, "<", mLine, column);
-        case '=':
-                return isLookaheadEqualSymbol
-                    ? Token(TokenType::EQUAL, "==", mLine, column)
-                    : Token(TokenType::ASSIGN, "=", mLine, column);
-        default:
-                break;
+    case '>':
+        return isLookaheadEqualSymbol
+               ? Token(TokenType::GREATER_THAN_OR_EQUAL, ">=", mLine, column)
+               : Token(TokenType::GREATER_THAN, ">", mLine, column);
+    case '<':
+        return isLookaheadEqualSymbol
+               ? Token(TokenType::LESS_THAN_OR_EQUAL, "<=", mLine, column)
+               : Token(TokenType::LESS_THAN, "<", mLine, column);
+    case '=':
+        return isLookaheadEqualSymbol
+               ? Token(TokenType::EQUAL, "==", mLine, column)
+               : Token(TokenType::ASSIGN, "=", mLine, column);
+    default:
+        break;
     }
 
     return Token(TokenType::UNKNOWN);
 }
 
-Token Lexer::recogniseArithmeticOperator() {
+Token Lexer::recogniseArithmeticOperator()
+{
     int column = mColumn;
     const char& character = mProgram[mPosition];
 
@@ -340,16 +387,16 @@ Token Lexer::recogniseArithmeticOperator() {
     ++mColumn;
 
     switch(character) {
-        case '+':
-                return Token(TokenType::PLUS, "+", mLine, column);
-        case '-':
-                return Token(TokenType::MINUS, "-", mLine, column);
-        case '*':
-                return Token(TokenType::MULT, "*", mLine, column);
-        case '/':
-                return Token(TokenType::DIV, "/", mLine, column);
-        default:
-                break;
+    case '+':
+        return Token(TokenType::PLUS, "+", mLine, column);
+    case '-':
+        return Token(TokenType::MINUS, "-", mLine, column);
+    case '*':
+        return Token(TokenType::MULT, "*", mLine, column);
+    case '/':
+        return Token(TokenType::DIV, "/", mLine, column);
+    default:
+        break;
     }
 
     return Token(TokenType::UNKNOWN);

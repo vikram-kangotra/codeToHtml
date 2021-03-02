@@ -6,18 +6,74 @@
         <link rel="stylesheet" href="style.css">
     </head>
     <body>
-        <pre style="max-height: 600px;"><code><span class="code-comment">/* A program */
+        <pre style="max-height: 600px;"><code><span class="code-meta">#include &lt;iostream&gt;
+</span><span class="code-meta">#include &lt;fstream&gt;
+</span><span class="code-meta">#include &lt;sstream&gt;
+</span><span class="code-meta">#include &lt;memory&gt;
+</span><span class="code-meta">#include "htmlConverter.h"
+</span>
+<span class="code-keyword">class</span> ArgumentError : <span class="code-keyword">public</span> <span class="code-built-in">std</span>::<span class="code-built-in">exception</span> {};
 
-</span><span class="code-comment">// A program
-
-</span><span class="code-meta">#include &lt;iostream&gt;
-</span><span class="code-keyword">using</span> <span class="code-keyword">namespace</span> <span class="code-built-in">std</span>;
-
-<span class="code-keyword">int</span> <span class="code-function">main</span>()
+<span class="code-keyword">class</span> FileDoesNotExit : <span class="code-keyword">public</span> <span class="code-built-in">std</span>::<span class="code-built-in">exception</span>
 {
-    <span class="code-keyword">int</span> i = <span class="code-number">0</span>;
+<span class="code-keyword">public</span>:
+    <span class="code-function">FileDoesNotExit</span>(<span class="code-keyword">const</span> <span class="code-built-in">std</span>::<span class="code-built-in">string</span>& fileName)
+        :   <span class="code-function">mFileName</span>(fileName) {}
 
-    <span class="code-built-in">std</span>::<span class="code-built-in">cout</span> &lt;&lt; <span class="code-string">"Hello World!"</span>;
+    <span class="code-keyword">const</span> <span class="code-keyword">char</span>* <span class="code-function">what</span>() <span class="code-keyword">const</span> noexcept
+    {
+        <span class="code-keyword">return</span> mFileName.<span class="code-function">c_str</span>();
+    }
+<span class="code-keyword">private</span>:
+    <span class="code-built-in">std</span>::<span class="code-built-in">string</span> mFileName;
+};
+
+<span class="code-built-in">std</span>::<span class="code-built-in">string</span> <span class="code-function">readAll</span>(<span class="code-keyword">const</span> <span class="code-built-in">std</span>::<span class="code-built-in">string</span>& fileName)
+{
+    <span class="code-built-in">std</span>::ifstream <span class="code-function">file</span>(fileName, <span class="code-built-in">std</span>::ios::ate);
+
+    <span class="code-keyword">if</span>(!file.<span class="code-function">is_open</span>()) {
+        throw <span class="code-function">FileDoesNotExit</span>(fileName);
+    }
+
+    <span class="code-keyword">const</span> <span class="code-keyword">int</span> length = file.<span class="code-function">tellg</span>();
+    file.<span class="code-function">seekg</span>(<span class="code-number">0</span>, <span class="code-built-in">std</span>::ifstream::beg);
+
+    <span class="code-built-in">std</span>::unique_ptr&lt;<span class="code-keyword">char</span>&gt; <span class="code-function">str</span>(new <span class="code-keyword">char</span>[length]);
+    file.<span class="code-function">read</span>(str.<span class="code-function">get</span>(), length);
+
+    <span class="code-keyword">return</span> <span class="code-built-in">std</span>::<span class="code-built-in">string</span>(str.<span class="code-function">get</span>());
+}
+
+<span class="code-keyword">void</span> <span class="code-function">writeAll</span>(<span class="code-keyword">const</span> <span class="code-built-in">std</span>::<span class="code-built-in">string</span>& fileName, <span class="code-keyword">const</span> <span class="code-built-in">std</span>::<span class="code-built-in">string</span>& data)
+{
+    <span class="code-built-in">std</span>::ofstream <span class="code-function">file</span>(fileName);
+    file.<span class="code-function">write</span>(data.<span class="code-function">c_str</span>(), data.<span class="code-function">length</span>());
+}
+
+<span class="code-keyword">int</span> <span class="code-function">main</span>(<span class="code-keyword">int</span> argc, <span class="code-keyword">char</span>* argv[])
+{
+    try {
+        <span class="code-keyword">if</span>(argc != <span class="code-number">2</span>)
+            throw <span class="code-function">ArgumentError</span>();
+
+        <span class="code-built-in">std</span>::<span class="code-built-in">string</span> program = <span class="code-function">readAll</span>(argv[<span class="code-number">1</span>]);
+
+        Lexer <span class="code-function">lexer</span>(program);
+
+        HtmlConverter <span class="code-function">htmlConverter</span>(lexer);
+        <span class="code-built-in">std</span>::<span class="code-built-in">string</span> html = htmlConverter.<span class="code-function">convert</span>();
+
+        <span class="code-function">writeAll</span>(<span class="code-string">"output.html"</span>, html);
+
+    } <span class="code-function">catch</span>(<span class="code-keyword">const</span> <span class="code-built-in">std</span>::runtime_error& err) {
+        <span class="code-built-in">std</span>::<span class="code-built-in">cout</span> &lt;&lt; err.<span class="code-function">what</span>();
+        <span class="code-keyword">return</span> -<span class="code-number">1</span>;
+    } <span class="code-function">catch</span>(<span class="code-keyword">const</span> ArgumentError& err) {
+        <span class="code-built-in">std</span>::<span class="code-built-in">cerr</span> &lt;&lt; <span class="code-string">"Usage: "</span> &lt;&lt; argv[<span class="code-number">0</span>] &lt;&lt; <span class="code-string">" file"</span>;
+    }
+
+    <span class="code-keyword">return</span> <span class="code-number">0</span>;
 }
 </code></pre>
     </body>
