@@ -3,13 +3,15 @@
 #include <string>
 #include "characterIdentifier.h"
 
-Token Lexer::getNextToken() {
-
-    if(!mTokens.empty()) {
-        Token token = mTokens.front();
-        mTokens.pop_front();
-        return token;
+void Lexer::process() {
+    Token token;
+    while(!eof()) {
+        token = getNextToken();
+        mTokens.push_back(token);
     }
+}
+
+Token Lexer::getNextToken() {
 
     if(mPosition >= mProgram.length()) {
         mEndOfFile = true;
@@ -49,8 +51,6 @@ Token Lexer::getNextToken() {
     if(CharacterIdentifier::isInvertedComma(character)) {
         return recogniseCharacter();
     }
-
-    std::cout << (int)character << '\n';
 
     throw std::runtime_error("Unrecognized character " + std::string() + character + " at line " + std::to_string(mLine) + " and column " + std::to_string(mColumn));
 }

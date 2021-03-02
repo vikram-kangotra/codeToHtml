@@ -5,17 +5,19 @@
 #include "codeConverter.h"
 #include <set>
 
-struct CodeFormat {
+struct CodeFormat
+{
     std::string styleClass;
     std::string value;
 };
 
-class HtmlConverter : public CodeConverter{
+class HtmlConverter : public CodeConverter
+{
 public:
     HtmlConverter(Lexer lexer);
 
-    std::string convert() {
-
+    std::string convert()
+    {
         handle();
 
         code += R"(</code></pre>
@@ -24,20 +26,29 @@ public:
 )";
         return code;
     }
-
-    bool isKeyword(const std::string& keyword) { return mKeywords.find(keyword) != mKeywords.end();}
 private:
     static std::set<std::string> mKeywords;
+    static std::set<std::string> mBuiltins;
+
+    int mTokenIndex = 0;
+
+private:
+    bool isKeyword(const Token& keyword) { return mKeywords.find(keyword.getValue()) != mKeywords.end();}
+    bool isBuiltin(const Token& builtin) { return mBuiltins.find(builtin.getValue()) != mBuiltins.end();}
+
+    bool isCommentStart(const Token& token);
+    bool isCommentEnd(const Token& token);
+    bool isFunction(const Token& token);
+    bool isMeta(const Token& token);
 
 private:
     void handle();
     void addToHtml(const CodeFormat& codeFormat);
-    CodeFormat identifyCodeFormat(const Token& token);
-    void handleHtmlPrintables(Token& token);
 
-    Token getNextToken();
-    CodeFormat handleComment(const Token& token);
-    CodeFormat handleMeta(const Token& token);
+    void handleHtmlPrintables(Token& token);
+    CodeFormat identifyCodeFormat();
+    CodeFormat handleComment();
+    CodeFormat handleMeta();
 };
 
 #endif // HTML_CONVERTER

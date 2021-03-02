@@ -2,7 +2,8 @@
 #include <algorithm>
 #include <iostream>
 
-std::string FSM::run(const std::string& input) {
+std::string FSM::run(const std::string& input)
+{
     int currentState = mInitialState;
 
     std::string subString;
@@ -20,8 +21,8 @@ std::string FSM::run(const std::string& input) {
     }
 
     if(std::find(mAcceptingStates.begin(),
-                        mAcceptingStates.end(),
-                        currentState) != mAcceptingStates.end()) {
+                 mAcceptingStates.end(),
+                 currentState) != mAcceptingStates.end()) {
         return subString;
     }
 

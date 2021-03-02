@@ -6,19 +6,22 @@
 
 class ArgumentError : public std::exception {};
 
-class FileDoesNotExit : public std::exception {
+class FileDoesNotExit : public std::exception
+{
 public:
     FileDoesNotExit(const std::string& fileName)
         :   mFileName(fileName) {}
 
-    const char* what() const noexcept {
+    const char* what() const noexcept
+    {
         return mFileName.c_str();
     }
 private:
     std::string mFileName;
 };
 
-std::string readAll(const std::string& fileName) {
+std::string readAll(const std::string& fileName)
+{
     std::ifstream file(fileName, std::ios::ate);
 
     if(!file.is_open()) {
@@ -34,7 +37,8 @@ std::string readAll(const std::string& fileName) {
     return std::string(str.get());
 }
 
-void writeAll(const std::string& fileName, const std::string& data) {
+void writeAll(const std::string& fileName, const std::string& data)
+{
     std::ofstream file(fileName);
     file.write(data.c_str(), data.length());
 }
@@ -42,10 +46,10 @@ void writeAll(const std::string& fileName, const std::string& data) {
 int main(int argc, char* argv[])
 {
     try {
-        if(argc != 2)
+        if(argc != 1)
             throw ArgumentError();
 
-        std::string program = readAll(argv[1]);
+        std::string program = readAll("temp.cpp");
 
         Lexer lexer(program);
 

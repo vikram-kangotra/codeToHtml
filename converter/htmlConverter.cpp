@@ -1,17 +1,22 @@
 #include "htmlConverter.h"
 
 std::set<std::string> HtmlConverter::mKeywords = {
-    "auto"  ,   "break" ,   "case"    , "char"  ,   "const"     ,   "continue"  ,   "default"   ,   "do"    ,
-    "double",   "else"  ,   "enum"    , "extern",   "float"     ,   "for"       ,   "goto"      ,   "if"    ,
-    "int"   ,   "long" 	,   "register", "return",   "short"     ,   "signed"    , 	"sizeof"    ,   "static",
-    "struct",  	"switch", 	"typedef" , "union" ,   "unsigned"  ,   "void"      ,   "volatile"  ,    "while"
+    "auto",   "break",   "case", "char",   "const",   "continue",   "default",   "do",
+    "double",   "else",   "enum", "extern",   "float",   "for",   "goto",   "if",
+    "int",   "long" 	,   "register", "return",   "short",   "signed", 	"sizeof",   "static",
+    "struct",  	"switch", 	"typedef", "union",   "unsigned",   "void",   "volatile",    "while",
+    "using",    "namespace"
+};
+
+std::set<std::string> HtmlConverter::mBuiltins =  {
+    "std",  "cout", "cin", "cerr", "string", "vector", "list", "map"
 };
 
 HtmlConverter::HtmlConverter(Lexer lexer)
-:   CodeConverter(lexer)
+    :   CodeConverter(lexer)
 {
     code +=
-R"(<!DOCTPYE html>
+        R"(<!DOCTPYE html>
 <html lang="en">
     <head>
         <meta charset="UTF-8">
@@ -20,17 +25,9 @@ R"(<!DOCTPYE html>
     </head>
     <body>
         <pre style="max-height: 600px;"><code>)";
-}
 
-void HtmlConverter::handle()
-{
-    for(Token token = getNextToken(); !mLexer.eof(); token = getNextToken()) {
-        CodeFormat codeFormat = identifyCodeFormat(token);
-        if(codeFormat.styleClass.empty()) {
-            code += token.getValue();
-        } else {
-            addToHtml(codeFormat);
-        }
+    for(auto& token: mLexer) {
+        handleHtmlPrintables(token);
     }
 }
 
@@ -43,91 +40,115 @@ void HtmlConverter::handleHtmlPrintables(Token& token)
     }
 }
 
-Token HtmlConverter::getNextToken()
+void HtmlConverter::handle()
 {
-    Token token = mLexer.getNextToken();
-    handleHtmlPrintables(token);
-    return token;
+    if(mTokenIndex >= mLexer.size())
+        return;
+
+    CodeFormat codeFormat = identifyCodeFormat();
+    addToHtml(codeFormat);
+    handle();
 }
 
-CodeFormat HtmlConverter::handleComment(const Token& token)
-{
-    CodeFormat codeFormat;
-    Token nextToken = getNextToken();
-
-    switch(nextToken.getType()) {
-        //  Single line comment
-        case TokenType::DIV: {
-                                codeFormat.styleClass = "code-comment";
-                                std::string value = token.getValue() + nextToken.getValue();
-                                while((nextToken = getNextToken()).getType() != TokenType::NEWLINE) {
-                                    value += nextToken.getValue();
-                                }
-                                codeFormat.value = value;
-                                mLexer.putBack(nextToken);
-                            }
-                                break;
-        // Multi line comment
-        case TokenType::MULT: {
-                                codeFormat.styleClass = "code-comment";
-                                std::string value = token.getValue() + nextToken.getValue();
-                                while(!mLexer.eof()) {
-                                    nextToken = getNextToken();
-                                    value += nextToken.getValue();
-                                    if(nextToken.getType() == TokenType::MULT) {
-                                        nextToken = getNextToken();
-                                        if(nextToken.getType() == TokenType::DIV) {
-                                            value += nextToken.getValue();
-                                            break;
-                                        }
-                                        mLexer.putBack(nextToken);
-                                    }
-                                }
-                                codeFormat.value = value;
-                            }
-                                break;
-        default:            mLexer.putBack(nextToken);
-    }
-
-    return codeFormat;
-}
-
-CodeFormat HtmlConverter::handleMeta(const Token& token)
-{
-    CodeFormat codeFormat;
-    codeFormat.styleClass = "code-meta";
-    std::string value = token.getValue();
-    Token nextToken;
-    while((nextToken = getNextToken()).getType() != TokenType::NEWLINE) {
-        value += nextToken.getValue();
-    }
-    codeFormat.value = value;
-    mLexer.putBack(nextToken);
-
-    return codeFormat;
-}
-
-CodeFormat HtmlConverter::identifyCodeFormat(const Token& token)
+CodeFormat HtmlConverter::identifyCodeFormat()
 {
     CodeFormat codeFormat;
 
-    if(isKeyword(token.getValue())) {
+    const Token& token = mLexer[mTokenIndex];
+    codeFormat.value = token.getValue();
+
+    if(isKeyword(token)) {
         codeFormat.styleClass = "code-keyword";
         codeFormat.value = token.getValue();
+    } else if(isBuiltin(token)) {
+        codeFormat.styleClass = "code-built-in";
+        codeFormat.value = token.getValue();
+    } else if(isCommentStart(token)) {
+        codeFormat = handleComment();
+    } else if(isFunction(token)) {
+        codeFormat.styleClass = "code-function";
+        codeFormat.value = token.getValue();
+    } else if(isMeta(token)) {
+        codeFormat = handleMeta();
     } else {
+
         switch(token.getType()) {
             case TokenType::STRING: {
                                         codeFormat.styleClass = "code-string";
                                         codeFormat.value = token.getValue();
+                                        break;
                                     }
-                                    break;
-
-            case TokenType::DIV:    codeFormat = handleComment(token);
-                                    break;
-
-            case TokenType::HASH:   codeFormat = handleMeta(token);
-                                    break;
+            case TokenType::CHARACTER:  {
+                                            codeFormat.styleClass = "code-charater";
+                                            codeFormat.value = token.getValue();
+                                            break;
+                                        }
+            case TokenType::NUMBER: {
+                                        codeFormat.styleClass = "code-number";
+                                        codeFormat.value = token.getValue();
+                                        break;
+                                    }
+            default: break;
         }
+    }
+
+    ++mTokenIndex;
+    return codeFormat;
+}
+
+bool HtmlConverter::isCommentStart(const Token& token)
+{
+    const TokenType nextTokenType = mLexer[mTokenIndex+1].getType();
+    return (token.getType() == TokenType::DIV) &&
+            ((nextTokenType == TokenType::DIV) || (nextTokenType == TokenType::MULT));
+}
+
+CodeFormat HtmlConverter::handleComment()
+{
+    CodeFormat codeFormat;
+    codeFormat.styleClass = "code-comment";
+
+    while(true) {
+        const Token& token = mLexer[mTokenIndex];
+        codeFormat.value += token.getValue();
+        ++mTokenIndex;
+        if(isCommentEnd(token)) {
+            codeFormat.value += mLexer[mTokenIndex].getValue();
+            break;
+        }
+    }
+
+    return codeFormat;
+}
+
+bool HtmlConverter::isCommentEnd(const Token& token)
+{
+    const TokenType nextTokenType = mLexer[mTokenIndex+1].getType();
+    return (token.getType() == TokenType::NEWLINE) ||
+        ((token.getType() == TokenType::MULT) && (nextTokenType == TokenType::DIV));
+}
+
+bool HtmlConverter::isFunction(const Token& token)
+{
+    return (mLexer[mTokenIndex+1].getType() == TokenType::LEFT_PARENTHESIS);
+}
+
+bool HtmlConverter::isMeta(const Token& token)
+{
+    return token.getType() == TokenType::HASH;
+}
+
+CodeFormat HtmlConverter::handleMeta()
+{
+    CodeFormat codeFormat;
+    codeFormat.styleClass = "code-meta";
+
+    while(true) {
+        const Token& token = mLexer[mTokenIndex];
+        codeFormat.value += token.getValue();
+        ++mTokenIndex;
+        if(token.getType() == TokenType::NEWLINE)
+            break;
     }
 
     return codeFormat;
@@ -135,9 +156,13 @@ CodeFormat HtmlConverter::identifyCodeFormat(const Token& token)
 
 void HtmlConverter::addToHtml(const CodeFormat& codeFormat)
 {
-    code += R"(<span class=")";
-    code += codeFormat.styleClass;
-    code += R"(">)";
-    code += codeFormat.value;
-    code += R"(</span>)";
+    if(codeFormat.styleClass.empty()) {
+        code += codeFormat.value;
+    } else {
+        code += R"(<span class=")";
+        code += codeFormat.styleClass;
+        code += R"(">)";
+        code += codeFormat.value;
+        code += R"(</span>)";
+    }
 }

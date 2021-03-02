@@ -2,18 +2,22 @@
 #define CODE_CONVERTER
 
 #include "lexer.h"
+#include <vector>
 
 class CodeConverter {
 public:
-    CodeConverter(Lexer lexer)
-    :   mLexer(lexer) {}
+    CodeConverter(const Lexer& lexer)
+        :   mLexer(lexer) {
+        mLexer.process();
+    }
 
     virtual std::string convert() = 0;
 
     virtual ~CodeConverter() {}
+
 protected:
-    std::string code;
     Lexer mLexer;
+    std::string code;
 };
 
 #endif // CODE_CONVERTER

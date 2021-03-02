@@ -7,46 +7,56 @@
 
 class Lexer
 {
-    public:
+public:
 
-        Lexer(const std::string& program)
+    Lexer(const std::string& program)
         :   mProgram(program),
             mPosition(0),
             mLine(0),
             mColumn(0),
             mEndOfFile(false) {}
 
-        Token getNextToken();
-        void putBack(const Token& token) { mTokens.push_back(token);}
+    void process();
 
-        bool eof() { return mEndOfFile;}
+    Token getNextToken();
 
-    private:
+    bool eof() const { return mEndOfFile;}
 
-        void skipWhiteSpacesAndNewLines();
-        FSM buildNumberRecogniser();
+    Token& operator[](const int& i) {return mTokens[i];}
 
-        Token recogniseBlank();
-        Token recogniseString();
-        Token recogniseCharacter();
-        Token recogniseSymbol();
-        Token recogniseIdentifier();
-        Token recogniseNumber();
-        Token recogniseOperator();
-        Token recogniseParenthesis();
-        Token recogniseArithmeticOperator();
-        Token recogniseComparisonOperator();
+    int size() const {return mTokens.size();}
 
-    private:
+    Token* begin() {return &mTokens[0];}
+    Token* end() {return &mTokens[size()];}
+    const Token* begin() const {return &mTokens[0];}
+    const Token* end() const {return &mTokens[size()];}
 
-        std::string mProgram;
-        int mPosition;
-        int mLine;
-        int mColumn;
+private:
 
-        bool mEndOfFile;
+    void skipWhiteSpacesAndNewLines();
+    FSM buildNumberRecogniser();
 
-        std::list<Token> mTokens;
+    Token recogniseBlank();
+    Token recogniseString();
+    Token recogniseCharacter();
+    Token recogniseSymbol();
+    Token recogniseIdentifier();
+    Token recogniseNumber();
+    Token recogniseOperator();
+    Token recogniseParenthesis();
+    Token recogniseArithmeticOperator();
+    Token recogniseComparisonOperator();
+
+private:
+
+    std::string mProgram;
+    int mPosition;
+    int mLine;
+    int mColumn;
+
+    bool mEndOfFile;
+
+    std::vector<Token> mTokens;
 };
 
 #endif

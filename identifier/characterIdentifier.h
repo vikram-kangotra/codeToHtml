@@ -3,15 +3,18 @@
 
 namespace CharacterIdentifier {
 
-bool isalpha(const char& a) {
+bool isalpha(const char& a)
+{
     return (a >= 'A' && a <= 'Z') || (a >= 'a' && a <= 'z');
 }
 
-bool isdigit(const char& d) {
+bool isdigit(const char& d)
+{
     return d >= '0' && d <= '9';
 }
 
-bool isblank(const char& b) {
+bool isblank(const char& b)
+{
     return b == ' ' || b == '\n';
 }
 
