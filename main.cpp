@@ -37,32 +37,27 @@ std::string readAll(const std::string& fileName)
     return std::string(str.get());
 }
 
-void writeAll(const std::string& fileName, const std::string& data)
-{
-    std::ofstream file(fileName);
-    file.write(data.c_str(), data.length());
-}
-
 int main(int argc, char* argv[])
 {
     try {
-        if(argc != 2)
+        if(argc != 1)
             throw ArgumentError();
 
-        std::string program = readAll(argv[1]);
+        std::string program = readAll("temp.cpp");
 
         Lexer lexer(program);
 
         HtmlConverter htmlConverter(lexer);
         std::string html = htmlConverter.convert();
 
-        std::cout << html;
+        std::ofstream file("output.html");
+        file << html;
 
     } catch(const std::runtime_error& err) {
         std::cout << err.what();
         return -1;
     } catch(const ArgumentError& err) {
-        std::cerr << "Usage: " << argv[0] << " file";
+        std::cerr << "Usage: " << argv[0] << " [file]";
     }
 
     return 0;

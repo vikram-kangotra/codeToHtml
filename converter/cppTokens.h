@@ -1,6 +1,7 @@
-#include "htmlConverter.h"
+#include "keywordHandler.h"
+#include "builtinHandler.h"
 
-std::set<std::string> HtmlConverter::mKeywords = {
+std::set<std::string> KeywordHandler::mKeywords = {
     "auto",
     "break",
     "case",
@@ -42,7 +43,7 @@ std::set<std::string> HtmlConverter::mKeywords = {
     "while"
 };
 
-std::set<std::string> HtmlConverter::mBuiltins =  {
+std::set<std::string> BuiltinHandler::mBuiltins =  {
     "cerr",
     "cin",
     "cout",

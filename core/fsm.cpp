@@ -1,3 +1,6 @@
+// *** ADDED BY HEADER FIXUP ***
+#include <istream>
+// *** END ***
 #include "fsm.h"
 #include <algorithm>
 #include <iostream>

@@ -1,19 +1,25 @@
+// *** ADDED BY HEADER FIXUP ***
+#include <istream>
+// *** END ***
 #include "lexer.h"
 #include <iostream>
 #include <string>
 #include "characterIdentifier.h"
 
-void Lexer::process()
+Token Lexer::peek()
 {
-    Token token;
-    while(!eof()) {
-        token = getNextToken();
-        mTokens.push_back(token);
-    }
+    Token token = getNextToken();
+    mTokens.push(token);
+    return token;
 }
 
 Token Lexer::getNextToken()
 {
+    if(!mTokens.empty()) {
+        Token token = mTokens.front();
+        mTokens.pop();
+        return token;
+    }
 
     if(mPosition >= mProgram.length()) {
         mEndOfFile = true;

@@ -72,6 +72,10 @@ public:
         return mColumn;
     }
 
+    bool is(const TokenType& type) const {
+        return mType == type;
+    }
+
     std::string getTypeStr() const
     {
         switch(mType) {

@@ -3,7 +3,7 @@
 
 #include "token.h"
 #include "fsm.h"
-#include <list>
+#include <queue>
 
 class Lexer
 {
@@ -16,41 +16,10 @@ public:
             mColumn(0),
             mEndOfFile(false) {}
 
-    void process();
-
     Token getNextToken();
+    Token peek();
 
-    bool eof() const
-    {
-        return mEndOfFile;
-    }
-
-    Token& operator[](const int& i)
-    {
-        return mTokens[i];
-    }
-
-    int size() const
-    {
-        return mTokens.size();
-    }
-
-    Token* begin()
-    {
-        return &mTokens[0];
-    }
-    Token* end()
-    {
-        return &mTokens[size()];
-    }
-    const Token* begin() const
-    {
-        return &mTokens[0];
-    }
-    const Token* end() const
-    {
-        return &mTokens[size()];
-    }
+    bool eof() const{return mEndOfFile;}
 
 private:
 
@@ -77,7 +46,7 @@ private:
 
     bool mEndOfFile;
 
-    std::vector<Token> mTokens;
+    std::queue<Token> mTokens;
 };
 
 #endif
